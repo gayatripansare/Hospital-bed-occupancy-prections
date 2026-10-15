@@ -1,0 +1,69 @@
+{
+  "selected_model": "Linear Regression",
+  "metrics": {
+    "Naive Persistence": {
+      "rmse": 7.366,
+      "mae": 5.206,
+      "r2": 0.734,
+      "type": "Heuristic Baseline"
+    },
+    "Linear Regression": {
+      "rmse": 2.231,
+      "mae": 1.828,
+      "r2": 0.976,
+      "type": "Machine Learning"
+    },
+    "Random Forest": {
+      "rmse": 2.947,
+      "mae": 1.938,
+      "r2": 0.957,
+      "type": "Machine Learning"
+    },
+    "XGBoost": {
+      "rmse": 2.762,
+      "mae": 2.062,
+      "r2": 0.963,
+      "type": "Machine Learning"
+    }
+  },
+  "num_cols": [
+    "Total_Hospital_Beds",
+    "Month",
+    "Public_Holiday",
+    "Special_Event",
+    "Occupancy_Lag_1",
+    "Occupancy_Lag_2",
+    "Occupancy_Lag_7",
+    "Occupancy_Roll_Mean_7",
+    "Admissions_Lag_1",
+    "Emergency_Lag_1",
+    "Discharges_Lag_1",
+    "Avg_LOS_Lag_1",
+    "Staff_Avail_Lag_1"
+  ],
+  "cat_cols": [
+    "Department",
+    "Season",
+    "Day_of_Week"
+  ],
+  "target_col": "Occupancy_Rate_Pct",
+  "departments": [
+    "Cardiology",
+    "General Medicine",
+    "Neurology",
+    "Obstetrics & Gynecology",
+    "Oncology",
+    "Orthopedics",
+    "Pediatrics",
+    "Surgery"
+  ],
+  "training_dates": {
+    "start": "2022-01-08",
+    "end": "2023-12-31"
+  },
+  "test_dates": {
+    "start": "2024-01-01",
+    "end": "2024-12-31"
+  },
+  "peak_demand_threshold_pct": 85.0
+}

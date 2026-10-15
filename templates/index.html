@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePulse Research Assistant | Hospital Bed Occupancy Forecasting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ================= LEFT SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <span class="brand-name">CarePulse</span>
+        <span class="brand-tag">Analytics</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="navAssistant" data-tab="assistant" onclick="switchTab('assistant')">
+        <div class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Research Assistant</span>
+      </button>
+
+      <button class="nav-item" id="navGraphics" data-tab="graphics" onclick="switchTab('graphics')">
+        <div class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+        </div>
+        <span class="nav-label">Graphical Analysis</span>
+      </button>
+
+      <button class="nav-item" id="navAlerts" data-tab="alerts" onclick="switchTab('alerts')">
+        <div class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <span class="nav-label">Alert Center</span>
+        <span class="alert-count-pill" id="sidebarAlertBadge" style="display: none;">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <span class="status-dot green"></span>
+        <span class="status-text">Forecasting Engine Active</span>
+      </div>
+      <div class="dataset-meta">
+        <span>8,768 Verified Inpatient Records</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT WRAPPER ================= -->
+  <div class="main-wrapper">
+
+    <!-- Prominent Red Zone Alert Banner -->
+    <div id="redAlertBanner" class="alert-banner-critical" style="display: none;">
+      <div class="alert-banner-left">
+        <div class="alert-pulse-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="alert-banner-info">
+          <strong class="alert-banner-tag">CRITICAL ALERT</strong>
+          <span id="bannerAlertText" class="alert-banner-msg">Hospital occupancy has entered the RED ZONE.</span>
+        </div>
+      </div>
+      <div class="alert-banner-right">
+        <button class="btn-banner-view" onclick="switchTab('alerts')">View in Alert Center</button>
+        <button class="btn-banner-dismiss" onclick="dismissRedBanner()" title="Dismiss banner">&times;</button>
+      </div>
+    </div>
+
+    <!-- Top Header Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="header-title" id="pageTitle">CarePulse Research Assistant</h1>
+      </div>
+      <div class="header-right">
+        <div class="status-indicator">
+          <span class="status-dot green"></span>
+          <span>Verified Operational Data</span>
+        </div>
+        <button id="clearBtn" class="btn-secondary" title="Reset conversation" onclick="resetConversation()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+          <span>Reset</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= SCREEN 1: RESEARCH ASSISTANT (DEFAULT) ================= -->
+    <main class="tab-screen active" id="screenAssistant">
+      
+      <div class="conversation-viewport" id="conversationViewport">
+        
+        <!-- Welcome Hero View (hidden once conversation starts) -->
+        <div class="hero-intro" id="heroIntro">
+          <div class="hero-badge">INPATIENT FORECASTING INTELLIGENCE</div>
+          <h2 class="hero-title">CarePulse Research Assistant</h2>
+          <p class="hero-subtitle">
+            Ask natural questions to forecast hospital bed occupancy, estimate available bed capacity, evaluate emergency inflows, and detect peak-demand conditions across departments using verified hospital operational data.
+          </p>
+
+          <div class="example-prompts-section">
+            <span class="example-label">Example questions:</span>
+            <div class="example-chips">
+              <button class="chip-btn" data-query="Forecast bed occupancy for Cardiology tomorrow">
+                Forecast bed occupancy for Cardiology tomorrow
+              </button>
+              <button class="chip-btn" data-query="How many beds are available in Surgery?">
+                How many beds are available in Surgery?
+              </button>
+              <button class="chip-btn" data-query="Will General Medicine face peak demand with 15 admissions?">
+                Will General Medicine face peak demand with 15 admissions?
+              </button>
+              <button class="chip-btn" data-query="What is the 7-day outlook for Pediatrics?">
+                What is the 7-day outlook for Pediatrics?
+              </button>
+              <button class="chip-btn" data-query="What was the latest observed hospital census?">
+                What was the latest observed hospital census?
+              </button>
+              <button class="chip-btn" data-query="What are the dataset limitations?">
+                What are the dataset limitations?
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Message Stream -->
+        <div class="message-stream" id="messageStream"></div>
+
+      </div>
+
+      <!-- Prominent Question Input Dock -->
+      <footer class="input-dock">
+        <div class="input-container">
+          <form id="questionForm" onsubmit="handleQuestionSubmit(event)">
+            <div class="input-box">
+              <textarea 
+                id="questionInput" 
+                placeholder="Ask about hospital bed occupancy, bed availability, emergency cases, or peak demand..." 
+                rows="1" 
+                required
+                autocomplete="off"
+              ></textarea>
+              <button type="submit" id="sendBtn" class="btn-send" title="Send question">
+                <span>Send</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </form>
+          <div class="input-footer-note">
+            <span>Hospital Bed Occupancy Forecasting &bull; 8 Clinical Departments &bull; Real-Time Capacity Analysis</span>
+          </div>
+        </div>
+      </footer>
+
+    </main>
+
+    <!-- ================= SCREEN 2: GRAPHICAL ANALYSIS ================= -->
+    <main class="tab-screen" id="screenGraphics">
+      <div class="graphics-viewport" id="graphicsViewport">
+        
+        <div class="graphics-hero">
+          <div class="graphics-hero-text">
+            <h2>Hospital Inpatient Graphical Analysis</h2>
+            <p>High-resolution clinical visualisations generated directly by Python Matplotlib using verified historical records and validated forecasting test results.</p>
+          </div>
+          <button class="btn-secondary" onclick="reloadAllCharts()" title="Regenerate all charts">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            <span>Refresh Visualizations</span>
+          </button>
+        </div>
+
+        <!-- 5 Dedicated Matplotlib Visualizations -->
+        <div class="charts-container" id="chartsContainer">
+          
+          <!-- Chart A -->
+          <article class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <span class="chart-badge">Purple &amp; Lavender</span>
+                <h3 class="chart-title">A. Historical Bed Occupancy</h3>
+              </div>
+              <div class="chart-axes-meta">
+                <span class="meta-tag">X: Date (2022-2024)</span>
+                <span class="meta-tag">Y: Occupancy Rate (%)</span>
+              </div>
+            </div>
+            <div class="chart-img-wrapper" id="wrapper_historical_occupancy">
+              <div class="chart-loading-state" id="loader_historical_occupancy">
+                <div class="chart-spinner"></div>
+                <span class="loading-label">Generating visualization from hospital records...</span>
+              </div>
+              <img 
+                id="chartImg_historical_occupancy" 
+                class="chart-img"
+                src="/api/chart/historical_occupancy" 
+                alt="Historical Bed Occupancy Chart"
+                onload="handleChartLoaded('historical_occupancy')"
+                onerror="handleChartFailed('historical_occupancy')"
+                style="display: none;"
+              >
+              <div class="chart-error-state" id="error_historical_occupancy" style="display: none;">
+                <div class="error-badge">Generation Notice</div>
+                <p class="error-msg">Unable to load visualization from backend server.</p>
+                <button class="btn-retry" onclick="retryChart('historical_occupancy')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </div>
+            <div class="chart-card-footer">
+              <p class="chart-explanation">
+                Visualizes daily hospital-wide bed occupancy in a dual-tone purple and lavender line graph over the 3-year historical period (2022–2024). The red dashed line denotes the critical 85% peak-demand operational threshold, identifying periods of acute inpatient bed stress.
+              </p>
+            </div>
+          </article>
+
+          <!-- Chart B -->
+          <article class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <span class="chart-badge">Green, Teal &amp; Violet</span>
+                <h3 class="chart-title">B. Department-wise Bed Occupancy</h3>
+              </div>
+              <div class="chart-axes-meta">
+                <span class="meta-tag">X: Avg Occupancy (%)</span>
+                <span class="meta-tag">Y: Clinical Department</span>
+              </div>
+            </div>
+            <div class="chart-img-wrapper" id="wrapper_department_occupancy">
+              <div class="chart-loading-state" id="loader_department_occupancy">
+                <div class="chart-spinner"></div>
+                <span class="loading-label">Generating department comparison from hospital records...</span>
+              </div>
+              <img 
+                id="chartImg_department_occupancy" 
+                class="chart-img"
+                src="/api/chart/department_occupancy" 
+                alt="Department-wise Bed Occupancy Chart"
+                onload="handleChartLoaded('department_occupancy')"
+                onerror="handleChartFailed('department_occupancy')"
+                style="display: none;"
+              >
+              <div class="chart-error-state" id="error_department_occupancy" style="display: none;">
+                <div class="error-badge">Generation Notice</div>
+                <p class="error-msg">Unable to load department visualization from backend server.</p>
+                <button class="btn-retry" onclick="retryChart('department_occupancy')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </div>
+            <div class="chart-card-footer">
+              <p class="chart-explanation">
+                Compares historical average bed occupancy rates across all 8 clinical departments using a distinct emerald green, teal, and violet tier palette. Inside-bar labels display exact occupancy percentages and dedicated departmental bed capacities.
+              </p>
+            </div>
+          </article>
+
+          <!-- Chart C -->
+          <article class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <span class="chart-badge">Orange &amp; Green</span>
+                <h3 class="chart-title">C. Admissions and Discharges</h3>
+              </div>
+              <div class="chart-axes-meta">
+                <span class="meta-tag">X: Date (2022-2024)</span>
+                <span class="meta-tag">Y: Patients / Day</span>
+              </div>
+            </div>
+            <div class="chart-img-wrapper" id="wrapper_admissions_discharges">
+              <div class="chart-loading-state" id="loader_admissions_discharges">
+                <div class="chart-spinner"></div>
+                <span class="loading-label">Generating inpatient flow analysis...</span>
+              </div>
+              <img 
+                id="chartImg_admissions_discharges" 
+                class="chart-img"
+                src="/api/chart/admissions_discharges" 
+                alt="Admissions and Discharges Chart"
+                onload="handleChartLoaded('admissions_discharges')"
+                onerror="handleChartFailed('admissions_discharges')"
+                style="display: none;"
+              >
+              <div class="chart-error-state" id="error_admissions_discharges" style="display: none;">
+                <div class="error-badge">Generation Notice</div>
+                <p class="error-msg">Unable to load patient flow visualization from backend server.</p>
+                <button class="btn-retry" onclick="retryChart('admissions_discharges')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </div>
+            <div class="chart-card-footer">
+              <p class="chart-explanation">
+                Compares daily patient admissions (Orange) against daily patient discharges (Green) over time using a 14-day rolling mean. Shaded regions illustrate net inpatient bed accumulation (admissions exceeding discharges) versus bed-freeing discharge periods.
+              </p>
+            </div>
+          </article>
+
+          <!-- Chart D -->
+          <article class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <span class="chart-badge">Red &amp; Coral</span>
+                <h3 class="chart-title">D. Emergency Cases</h3>
+              </div>
+              <div class="chart-axes-meta">
+                <span class="meta-tag">X: Date (2022-2024)</span>
+                <span class="meta-tag">Y: Emergency Admissions / Day</span>
+              </div>
+            </div>
+            <div class="chart-img-wrapper" id="wrapper_emergency_cases">
+              <div class="chart-loading-state" id="loader_emergency_cases">
+                <div class="chart-spinner"></div>
+                <span class="loading-label">Generating emergency admissions surge patterns...</span>
+              </div>
+              <img 
+                id="chartImg_emergency_cases" 
+                class="chart-img"
+                src="/api/chart/emergency_cases" 
+                alt="Emergency Cases Trend Chart"
+                onload="handleChartLoaded('emergency_cases')"
+                onerror="handleChartFailed('emergency_cases')"
+                style="display: none;"
+              >
+              <div class="chart-error-state" id="error_emergency_cases" style="display: none;">
+                <div class="error-badge">Generation Notice</div>
+                <p class="error-msg">Unable to load emergency admissions visualization from backend server.</p>
+                <button class="btn-retry" onclick="retryChart('emergency_cases')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </div>
+            <div class="chart-card-footer">
+              <p class="chart-explanation">
+                Tracks daily emergency admissions using coral vertical bars alongside a bold red 14-day acute surge trend curve and the 90th-percentile surge threshold line, illustrating severe emergency pressures on inpatient buffer.
+              </p>
+            </div>
+          </article>
+
+          <!-- Chart E -->
+          <article class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title-group">
+                <span class="chart-badge">Orange &amp; Purple</span>
+                <h3 class="chart-title">E. Actual vs Predicted Occupancy</h3>
+              </div>
+              <div class="chart-axes-meta">
+                <span class="meta-tag">X: Actual Occupancy (%)</span>
+                <span class="meta-tag">Y: Predicted Occupancy (%)</span>
+              </div>
+            </div>
+            <div class="chart-img-wrapper" id="wrapper_actual_vs_predicted">
+              <div class="chart-loading-state" id="loader_actual_vs_predicted">
+                <div class="chart-spinner"></div>
+                <span class="loading-label">Generating model validation scatter from 2024 test split...</span>
+              </div>
+              <img 
+                id="chartImg_actual_vs_predicted" 
+                class="chart-img"
+                src="/api/chart/actual_vs_predicted" 
+                alt="Actual vs Predicted Occupancy Validation Chart"
+                onload="handleChartLoaded('actual_vs_predicted')"
+                onerror="handleChartFailed('actual_vs_predicted')"
+                style="display: none;"
+              >
+              <div class="chart-error-state" id="error_actual_vs_predicted" style="display: none;">
+                <div class="error-badge">Generation Notice</div>
+                <p class="error-msg">Unable to load validation visualization from backend server.</p>
+                <button class="btn-retry" onclick="retryChart('actual_vs_predicted')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  <span>Retry</span>
+                </button>
+              </div>
+            </div>
+            <div class="chart-card-footer">
+              <p class="chart-explanation">
+                Validates forecasting accuracy on the held-out 2024 test split with a dual orange and purple scatter plot aligned along the ideal 1:1 purple diagonal reference line and ±5% error tolerance corridor.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= SCREEN 3: ALERT MANAGEMENT ================= -->
+    <main class="tab-screen" id="screenAlerts">
+      <div class="alerts-viewport" id="alertsViewport">
+        
+        <div class="alerts-hero">
+          <div class="alerts-hero-text">
+            <h2>Bed Occupancy Alert Management</h2>
+            <p>Surveillance of inpatient capacity thresholds, automated Red-Zone notifications, and machine learning early-warning forecast triggers.</p>
+          </div>
+          <div class="alerts-hero-actions">
+            <button class="btn-secondary" onclick="fetchAlerts(true)" title="Run continuous capacity evaluation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span>Evaluate Capacity</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Top Configuration & Hospital Overview Row -->
+        <div class="alerts-grid-top">
+          
+          <!-- Card 1: Configurable Zone Thresholds -->
+          <div class="alert-config-card">
+            <div class="card-head">
+              <span class="card-badge purple">Surveillance Policy</span>
+              <h3>Configurable Occupancy Zones</h3>
+            </div>
+            <div class="zone-pills-row">
+              <div class="zone-pill green">
+                <span class="zone-dot green"></span>
+                <span class="zone-name">Green Zone</span>
+                <span class="zone-rule" id="lblGreenRule">&lt; 70%</span>
+                <span class="zone-desc">Normal Capacity Buffer</span>
+              </div>
+              <div class="zone-pill yellow">
+                <span class="zone-dot yellow"></span>
+                <span class="zone-name">Yellow Zone</span>
+                <span class="zone-rule" id="lblYellowRule">70% – 85%</span>
+                <span class="zone-desc">Elevated Stress / Warning</span>
+              </div>
+              <div class="zone-pill red">
+                <span class="zone-dot red"></span>
+                <span class="zone-name">Red Zone</span>
+                <span class="zone-rule" id="lblRedRule">&ge; 85%</span>
+                <span class="zone-desc">Critical Surge / Alert</span>
+              </div>
+            </div>
+
+            <form class="threshold-form" onsubmit="handleUpdateThresholds(event)">
+              <div class="form-inputs-group">
+                <div class="form-field">
+                  <label for="inputGreenMax">Green Max (%)</label>
+                  <input type="number" id="inputGreenMax" min="10" max="95" step="1" value="70" required>
+                </div>
+                <div class="form-field">
+                  <label for="inputRedMin">Red Min (%)</label>
+                  <input type="number" id="inputRedMin" min="15" max="99" step="1" value="85" required>
+                </div>
+              </div>
+              <button type="submit" class="btn-primary-sm" id="btnSaveThresholds">
+                <span>Update Thresholds</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Card 2: Hospital-Wide Rollup Status -->
+          <div class="hospital-overview-card" id="hospitalOverviewCard">
+            <div class="card-head">
+              <span class="card-badge violet">Hospital-Wide Census</span>
+              <h3>Total Inpatient Capacity</h3>
+            </div>
+            <div class="census-metric-hero">
+              <div class="census-big-number">
+                <span id="hospitalOccupancyRate">--%</span>
+                <span class="census-rate-label">Overall Occupancy Rate</span>
+              </div>
+              <div class="census-zone-tag" id="hospitalZoneTag">
+                <span class="tag-dot"></span>
+                <span id="hospitalZoneLabel">Evaluating...</span>
+              </div>
+            </div>
+            <div class="census-stats-grid">
+              <div class="stat-mini">
+                <span class="stat-label">Total Beds</span>
+                <strong class="stat-val" id="hospitalTotalBeds">--</strong>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-label">Beds Occupied</span>
+                <strong class="stat-val" id="hospitalOccupiedBeds">--</strong>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-label">Available Beds</span>
+                <strong class="stat-val emerald" id="hospitalAvailableBeds">--</strong>
+              </div>
+              <div class="stat-mini">
+                <span class="stat-label">Active Red Alerts</span>
+                <strong class="stat-val crimson" id="hospitalActiveAlertsCount">0</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Active Red-Zone Alerts Stream -->
+        <div class="alerts-section">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h3 class="section-title">Active Critical Alerts</h3>
+              <span class="section-counter-badge" id="activeAlertsCounter">0 Active</span>
+            </div>
+            <span class="section-subtitle">Real-time alerts triggered by current census or predictive ML forecast crossing the Red Zone</span>
+          </div>
+
+          <div class="active-alerts-container" id="activeAlertsContainer">
+            <div class="alerts-empty-state" id="alertsEmptyState">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <h4>All Departments Within Safe Capacity Buffers</h4>
+              <p>No hospital departments have breached or are forecasted to breach the configured Red Zone threshold.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Departmental Zone Census Table -->
+        <div class="alerts-section">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h3 class="section-title">Departmental Capacity &amp; Zone Surveillance</h3>
+              <span class="section-counter-badge">8 Clinical Departments</span>
+            </div>
+            <span class="section-subtitle">Direct comparison of verified inpatient census and next-day ML predicted zone classification</span>
+          </div>
+
+          <div class="dept-surveillance-wrapper">
+            <table class="dept-surveillance-table">
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Total Beds</th>
+                  <th>Occupied Beds</th>
+                  <th>Available Beds</th>
+                  <th>Current Occupancy</th>
+                  <th>Current Zone</th>
+                  <th>Next-Day Forecast</th>
+                </tr>
+              </thead>
+              <tbody id="departmentSurveillanceBody">
+                <tr><td colspan="7" class="loading-cell">Loading department surveillance data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Alert History Section -->
+        <div class="alerts-section">
+          <div class="section-header-row">
+            <div class="section-title-wrap">
+              <h3 class="section-title">Alert History &amp; Resolution Audit Log</h3>
+            </div>
+            <span class="section-subtitle">Audit trail of previously triggered and acknowledged capacity alerts</span>
+          </div>
+
+          <div class="history-table-wrapper">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Alert ID</th>
+                  <th>Department</th>
+                  <th>Trigger Category</th>
+                  <th>Occupancy Rate</th>
+                  <th>Available Beds</th>
+                  <th>Timestamp</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="alertsHistoryBody">
+                <tr><td colspan="8" class="loading-cell">Loading alert history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

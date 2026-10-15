@@ -1,0 +1,270 @@
+{
+  "info": {
+    "_postman_id": "a9c2f6d4-8501-447b-b0b9-hospitalbedml02",
+    "name": "CarePulse AI - Hospital Bed Occupancy API Tests (Project 14)",
+    "description": "Comprehensive API Test Suite for Project 14: Hospital Bed Occupancy Forecasting regression models, 7-day horizon forecasting, and dashboard endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Home Page Dashboard (GET /)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": [""]
+        },
+        "description": "Verifies that the Flask web dashboard renders HTML successfully."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Page contains CarePulse branding', function () {",
+              "    pm.expect(pm.response.text()).to.include('CarePulse');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Dashboard Overview & Latest Observed Status (GET /api/dashboard-overview)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/dashboard-overview",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "dashboard-overview"]
+        },
+        "description": "Fetches current hospital status, bed capacity, and department allocations as of 2024-12-31."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response contains verified hospital keys', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "    pm.expect(jsonData).to.have.property('latest_observation_date');",
+              "    pm.expect(jsonData).to.have.property('total_hospital_beds');",
+              "    pm.expect(jsonData).to.have.property('total_beds_occupied');",
+              "    pm.expect(jsonData).to.have.property('total_beds_available');",
+              "    pm.expect(jsonData.departments.length).to.eql(8);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 7-Day Forward Horizon Forecast (GET /api/forecast-horizon)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/forecast-horizon",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "forecast-horizon"]
+        },
+        "description": "Returns multi-step autoregressive forecasts for the upcoming 7 days across all departments."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns 7-day multi-step forecasts', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "    pm.expect(jsonData.horizon_days).to.eql(7);",
+              "    pm.expect(jsonData.daily_forecasts.length).to.eql(7);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Scenario Forecasting (POST /api/forecast-scenario - General Medicine)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"department\": \"General Medicine\",\n  \"expected_admissions\": 8,\n  \"expected_emergency\": 3,\n  \"expected_discharges\": 5,\n  \"season\": \"Winter\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/forecast-scenario",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "forecast-scenario"]
+        },
+        "description": "Simulates clinical capacity under custom patient inflows."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Outputs valid continuous bed metrics', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.success).to.be.true;",
+              "    pm.expect(jsonData).to.have.property('predicted_occupancy_rate');",
+              "    pm.expect(jsonData).to.have.property('predicted_occupied_beds');",
+              "    pm.expect(jsonData).to.have.property('estimated_available_beds');",
+              "    pm.expect(jsonData).to.have.property('demand_level');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Peak Demand Stress Inflow (POST /api/forecast-scenario - Surgery Inflow Surge)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"department\": \"Surgery\",\n  \"expected_admissions\": 25,\n  \"expected_emergency\": 12,\n  \"expected_discharges\": 2,\n  \"season\": \"Winter\"\n}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/forecast-scenario",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "forecast-scenario"]
+        },
+        "description": "Tests high patient volume stress and triggers peak demand alert."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Flags peak demand alert', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.is_peak_demand).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Historical Time-Series Trends (GET /api/historical-trends)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/historical-trends",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "historical-trends"]
+        },
+        "description": "Returns past 60 days of historical inpatient trend data."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Returns 60 historical time points', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.dates.length).to.eql(60);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Model Benchmark & Evaluation Report (GET /api/model-evaluation)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:5000/api/model-evaluation",
+          "protocol": "http",
+          "host": ["127", "0", "0", "1"],
+          "port": "5000",
+          "path": ["api", "model-evaluation"]
+        },
+        "description": "Returns evaluation metrics (RMSE, MAE, R²) on the 2024 held-out test split."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Contains official regression metrics', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.selected_model).to.eql('Linear Regression');",
+              "    pm.expect(jsonData.metrics['Linear Regression'].rmse).to.eql(2.231);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

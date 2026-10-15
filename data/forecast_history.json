@@ -1,0 +1,92 @@
+[
+  {
+    "success": true,
+    "model_status": "ACTIVE_PRODUCTION_MODEL",
+    "target_predicted": "Occupancy_Rate_Pct",
+    "target_meaning": "Continuous hospital bed occupancy rate as a percentage (0-100%)",
+    "department": "Cardiology",
+    "predicted_occupancy_rate": 100.0,
+    "total_hospital_beds": 60,
+    "predicted_occupied_beds": 60,
+    "estimated_available_beds": 0,
+    "is_peak_demand": true,
+    "demand_level": "Peak Demand (High Capacity Stress)",
+    "zone": "RED",
+    "zone_label": "Red Zone (\u2265 85%)",
+    "zone_severity": "critical",
+    "inputs_evaluated": {
+      "admissions": 12.0,
+      "emergencies": 4.0,
+      "discharges": 3.0,
+      "season": "Winter"
+    },
+    "model_metadata": {
+      "algorithm": "Linear Regression",
+      "validation_rmse": 2.231,
+      "validation_r2": 0.976,
+      "training_dataset": "data/hospital_occupancy.csv (8,768 records)"
+    },
+    "timestamp": "2026-10-14 19:08:52",
+    "warnings": []
+  },
+  {
+    "success": true,
+    "model_status": "ACTIVE_PRODUCTION_MODEL",
+    "target_predicted": "Occupancy_Rate_Pct",
+    "target_meaning": "Continuous hospital bed occupancy rate as a percentage (0-100%)",
+    "department": "Cardiology",
+    "predicted_occupancy_rate": 100.0,
+    "total_hospital_beds": 60,
+    "predicted_occupied_beds": 60,
+    "estimated_available_beds": 0,
+    "is_peak_demand": true,
+    "demand_level": "Peak Demand (High Capacity Stress)",
+    "zone": "RED",
+    "zone_label": "Red Zone (\u2265 85%)",
+    "zone_severity": "critical",
+    "inputs_evaluated": {
+      "admissions": 10.0,
+      "emergencies": 3.0,
+      "discharges": 8.0,
+      "season": "Winter"
+    },
+    "model_metadata": {
+      "algorithm": "Linear Regression",
+      "validation_rmse": 2.231,
+      "validation_r2": 0.976,
+      "training_dataset": "data/hospital_occupancy.csv (8,768 records)"
+    },
+    "timestamp": "2026-10-14 19:36:59",
+    "warnings": []
+  },
+  {
+    "success": true,
+    "model_status": "ACTIVE_PRODUCTION_MODEL",
+    "target_predicted": "Occupancy_Rate_Pct",
+    "target_meaning": "Continuous hospital bed occupancy rate as a percentage (0-100%)",
+    "department": "Cardiology",
+    "predicted_occupancy_rate": 100.0,
+    "total_hospital_beds": 60,
+    "predicted_occupied_beds": 60,
+    "estimated_available_beds": 0,
+    "is_peak_demand": true,
+    "demand_level": "Peak Demand (High Capacity Stress)",
+    "zone": "RED",
+    "zone_label": "Red Zone (\u2265 85%)",
+    "zone_severity": "critical",
+    "inputs_evaluated": {
+      "admissions": 10.0,
+      "emergencies": 3.0,
+      "discharges": 8.0,
+      "season": "Winter"
+    },
+    "model_metadata": {
+      "algorithm": "Linear Regression",
+      "validation_rmse": 2.231,
+      "validation_r2": 0.976,
+      "training_dataset": "data/hospital_occupancy.csv (8,768 records)"
+    },
+    "timestamp": "2026-10-14 19:37:53",
+    "warnings": []
+  }
+]
